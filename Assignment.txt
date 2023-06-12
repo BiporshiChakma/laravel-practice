@@ -1,0 +1,266 @@
+
+1.Explain what Laravel's query builder is and how it provides a simple and elegant way to interact with databases.
+
+Answer : 
+
+
+Laravel's query builder is a feature that allows developers to interact with databases in an easy and elegant way. Instead of writing complex SQL 
+statements, developers can use a set of methods provided by Laravel to build queries using a clean and readable syntax.With the query builder, it can
+perform common database operations like inserting, retrieving, updating, and deleting data without needing to write raw SQL. It also supports joining 
+tables and working with relationships between database tables.The query builder abstracts the underlying database engine, so it can write database-agnostic
+queries that work with different database systems. It also provides features like parameter binding to protect against SQL injection attacks.It can build complex 
+queries in a more organized and readable manner. The query builder integrates with Laravel's pagination and eager loading features, making it easy to paginate 
+results and load related data efficiently.
+Overall, Laravel's query builder simplifies database interactions by providing a more intuitive and expressive way to work with databases, helping developers
+write cleaner and more maintainable code.
+
+
+2.Write the code to retrieve the "excerpt" and "description" columns from the "posts" table using Laravel's query builder. Store the result in the $posts 
+variable. Print the $posts variable.
+
+code:
+
+<?php
+$posts = DB::table('posts')
+            ->select('excerpt', 'description')
+            ->get();
+
+print_r($posts);
+
+
+3.Describe the purpose of the distinct() method in Laravel's query builder. How is it used in conjunction with the select() method?
+Answer:
+
+The distinct() method in Laravel's query builder is used to retrieve only unique records from a column or set of columns in the result set. 
+It ensures that duplicate values are eliminated, and each returned row is distinct.
+
+Here's how the distinct() method is used in conjunction with the select() method in Laravel's query builder:
+
+Selecting All Columns with Distinct Values:
+
+$result = DB::table('table_name')
+            ->select('column_name')
+            ->distinct()
+            ->get();
+
+In this example, the distinct() method is called after the select() method. It specifies that we want to retrieve only distinct values from the specified 
+column (column_name). The get() method executes the query and returns the result set.
+
+Selecting Multiple Columns with Distinct Values:
+
+$result = DB::table('table_name')
+            ->select('column1', 'column2')
+            ->distinct()
+            ->get();
+
+Similarly, you can use the distinct() method when selecting multiple columns. It ensures that each combination of the selected columns has distinct values.
+
+
+
+4.Write the code to retrieve the first record from the "posts" table where the "id" is 2 using Laravel's query builder. Store the result in the $posts variable. 
+Print the "description" column of the $posts variable.
+
+Answer:
+<?php
+$posts = DB::table('posts')
+            ->where('id', 2)
+            ->first();
+
+echo $posts->description;
+
+
+5.Write the code to retrieve the "description" column from the "posts" table where the "id" is 2 using Laravel's query builder. Store the result in the 
+$posts variable. Print the $posts variable.
+Answer:
+$posts = DB::table('posts')
+            ->where('id', 2)
+            ->pluck('description');
+
+print_r($posts);
+
+
+
+
+6.Explain the difference between the first() and find() methods in Laravel's query builder. How are they used to retrieve single records?
+Answer:
+first() Method:
+
+(a) Usage: The first() method is used to retrieve the first record that matches the query conditions.
+
+(b) Commonly Used with Other Query Constraints: It is often used in combination with other query constraints such as where(), orderBy(), etc., to specify the 
+conditions for selecting the first record.
+
+(c) Returns Full Record: It returns the entire record as an object or an associative array, including all columns of the selected row.
+
+(d) Example Usage:
+$user = DB::table('users')->where('name', 'John')->first();
+
+
+find() Method:
+
+(a) Usage: The find() method is used to retrieve a record based on its primary key value.
+
+(b) Specific to Primary Key Lookup: It is specifically designed for retrieving records based on the primary key value, which is passed as an argument 
+to the method.
+
+(c) Returns Single Column Value: It returns only a single column value (usually the primary key column value) instead of the entire record.
+
+(d) Example Usage:
+$user = DB::table('users')->find(1);
+
+
+
+
+7.Write the code to retrieve the "title" column from the "posts" table using Laravel's query builder. Store the result in the $posts variable. 
+Print the $posts variable.
+Answer:
+
+<?php
+$posts = DB::table('posts')
+            ->pluck('title');
+
+print_r($posts);
+
+
+
+
+8.Write the code to insert a new record into the "posts" table using Laravel's query builder. Set the "title" and "slug" columns to 'X', and the
+ "excerpt" and "description" columns to 'excerpt' and 'description', respectively. Set the "is_published" column to true and the "min_to_read" column to 2.
+ Print the result of the insert operation.
+
+Answer:
+
+<?php
+$result = DB::table('posts')
+            ->insert([
+                'title' => 'X',
+                'slug' => 'X',
+                'excerpt' => 'excerpt',
+                'description' => 'description',
+                'is_published' => true,
+                'min_to_read' => 2
+            ]);
+
+print_r($result);
+
+
+
+
+9.Write the code to update the "excerpt" and "description" columns of the record with the "id" of 2 in the "posts" table using Laravel's query builder.
+ Set the new values to 'Laravel 10'. Print the number of affected rows.
+
+Answer:
+
+<?php
+$affectedRows = DB::table('posts')
+                ->where('id', 2)
+                ->update([
+                    'excerpt' => 'Laravel 10',
+                    'description' => 'Laravel 10'
+                ]);
+
+echo "Number of affected rows: " . $affectedRows;
+
+
+
+10.Write the code to delete the record with the "id" of 3 from the "posts" table using Laravel's query builder. Print the number of affected rows.
+Answer:
+
+<?php
+$affectedRows = DB::table('posts')
+                ->where('id', 3)
+                ->delete();
+
+echo "Number of affected rows: " . $affectedRows;
+
+
+11.Explain the purpose and usage of the aggregate methods count(), sum(), avg(), max(), and min() in Laravel's query builder. Provide an example of each.
+Answer:
+
+The aggregate methods count(), sum(), avg(), max(), and min() in Laravel's query builder are used to perform calculations on specific columns of a table. Here's
+ an explanation of their purpose and usage along with an example for each:
+
+count(): This method is used to count the number of rows that match a specific condition. It can be used to count all rows or count rows based on certain 
+criteria.
+
+Example:$totalUsers = DB::table('users')->count();
+
+sum(): This method is used to calculate the sum of values in a specific column. It is commonly used with numeric columns such as prices or quantities.
+
+Example: $totalPrice = DB::table('orders')->sum('price');
+
+avg(): This method is used to calculate the average value of a specific column. It is useful for finding the average of numerical data such as ratings or scores.
+
+Example:$averageRating = DB::table('reviews')->avg('rating');
+
+max(): This method is used to retrieve the maximum value from a specific column. It can be used to find the highest value in a set of data.
+
+Example:$highestScore = DB::table('students')->max('score');
+
+min(): This method is used to retrieve the minimum value from a specific column. It helps find the lowest value in a set of data.
+
+Example:$lowestPrice = DB::table('products')->min('price');
+
+
+12.Describe how the whereNot() method is used in Laravel's query builder. Provide an example of its usage.
+Answer:
+
+The whereNot() method in Laravel's query builder is used to add a "not equal" condition to a query. It allows you to retrieve records that do not match a specific value or set of values in a column. The whereNot() method is typically used in conjunction with the where() method to add additional conditions to a query.
+
+Here's an example of how to use the whereNot() method:
+$users = DB::table('users')
+            ->whereNot('status', 'active')
+            ->get();
+
+In the above example, we are retrieving all the users whose status is not equal to 'active'. The whereNot() method takes two arguments: the column name and the 
+value to compare against. It adds a "not equal" condition to the query.
+
+The resulting query will retrieve all the users from the "users" table whose status is not equal to 'active'.
+
+
+13.Explain the difference between the exists() and doesntExist() methods in Laravel's query builder. How are they used to check the existence of records?
+
+Answer:
+explanation of the difference between the exists() and doesntExist() methods in Laravel's query builder for checking the existence of records:
+
+exists(): It checks if at least one record exists in the table that matches a specified condition. It returns true if there is a matching record, and false if 
+there is no match.
+using exits:
+$result = DB::table('users')
+            ->where('email', 'user@example.com')
+            ->exists();
+
+
+doesntExist(): It checks if no records exist in the table that match a specified condition. It returns true if there are no matching records, and false if there
+ is at least one match.
+using doesntExist:
+$result = DB::table('users')
+            ->where('status', 'active')
+            ->doesntExist();
+
+
+
+14.Write the code to retrieve records from the "posts" table where the "min_to_read" column is between 1 and 5 using Laravel's query builder. 
+Store the result in the $posts variable. Print the $posts variable.
+Answer:
+$posts = DB::table('posts')
+            ->whereBetween('min_to_read', [1, 5])
+            ->get();
+
+print_r($posts);
+
+
+15.Write the code to increment the "min_to_read" column value of the record with the "id" of 3 in the "posts" table by 1 using Laravel's query builder. 
+Print the number of affected rows.
+
+Answer:
+
+$affectedRows = DB::table('posts')
+                  ->where('id', 3)
+                  ->increment('min_to_read');
+
+echo "Number of affected rows: " . $affectedRows;
+
+
+
+
