@@ -1,266 +1,334 @@
 
-1.Explain what Laravel's query builder is and how it provides a simple and elegant way to interact with databases.
-
-Answer : 
+01 : Create a new migration file to add a new table named "categories" to the database. The table should have the following columns:
 
 
-Laravel's query builder is a feature that allows developers to interact with databases in an easy and elegant way. Instead of writing complex SQL 
-statements, developers can use a set of methods provided by Laravel to build queries using a clean and readable syntax.With the query builder, it can
-perform common database operations like inserting, retrieving, updating, and deleting data without needing to write raw SQL. It also supports joining 
-tables and working with relationships between database tables.The query builder abstracts the underlying database engine, so it can write database-agnostic
-queries that work with different database systems. It also provides features like parameter binding to protect against SQL injection attacks.It can build complex 
-queries in a more organized and readable manner. The query builder integrates with Laravel's pagination and eager loading features, making it easy to paginate 
-results and load related data efficiently.
-Overall, Laravel's query builder simplifies database interactions by providing a more intuitive and expressive way to work with databases, helping developers
-write cleaner and more maintainable code.
+id (primary key, auto-increment)
+
+name (string)
+
+created_at (timestamp)
+
+updated_at (timestamp)
+
+Ans: 
+<?php
+
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+class CreateCategoriesTable extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
+        Schema::create('categories', function (Blueprint $table) {
+            $table->id();
+            $table->string('name');
+            $table->timestamps();
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        Schema::dropIfExists('categories');
+    }
+}
 
 
-2.Write the code to retrieve the "excerpt" and "description" columns from the "posts" table using Laravel's query builder. Store the result in the $posts 
-variable. Print the $posts variable.
 
-code:
+
+02: Create a new model named "Category" associated with the "categories" table. Define the necessary properties and relationships.
+
+Answer: 
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class Category extends Model
+{
+    protected $fillable = ['name'];
+
+    public function products()
+    {
+        return $this->hasMany(Product::class);
+    }
+}
+
+
+03:Write a migration file to add a foreign key constraint to the "posts" table. The foreign key should reference the "categories" table on the "category_id" column.
+
+Ans :
 
 <?php
-$posts = DB::table('posts')
-            ->select('excerpt', 'description')
-            ->get();
 
-print_r($posts);
+use Illuminate\Database\Migrations\Migration;
+use Illuminate\Database\Schema\Blueprint;
+use Illuminate\Support\Facades\Schema;
+
+class AddForeignKeyToPostsTable extends Migration
+{
+    /**
+     * Run the migrations.
+     *
+     * @return void
+     */
+    public function up()
+    {
+        Schema::table('posts', function (Blueprint $table) {
+            $table->foreign('category_id')
+                ->references('id')
+                ->on('categories')
+                ->onDelete('cascade');
+        });
+    }
+
+    /**
+     * Reverse the migrations.
+     *
+     * @return void
+     */
+    public function down()
+    {
+        Schema::table('posts', function (Blueprint $table) {
+            $table->dropForeign(['category_id']);
+        });
+    }
+}
 
 
-3.Describe the purpose of the distinct() method in Laravel's query builder. How is it used in conjunction with the select() method?
-Answer:
 
-The distinct() method in Laravel's query builder is used to retrieve only unique records from a column or set of columns in the result set. 
-It ensures that duplicate values are eliminated, and each returned row is distinct.
+04: Create a relationship between the "Post" and "Category" models. A post belongs to a category, and a category can have multiple posts.
+Ans : 
 
-Here's how the distinct() method is used in conjunction with the select() method in Laravel's query builder:
-
-Selecting All Columns with Distinct Values:
-
-$result = DB::table('table_name')
-            ->select('column_name')
-            ->distinct()
-            ->get();
-
-In this example, the distinct() method is called after the select() method. It specifies that we want to retrieve only distinct values from the specified 
-column (column_name). The get() method executes the query and returns the result set.
-
-Selecting Multiple Columns with Distinct Values:
-
-$result = DB::table('table_name')
-            ->select('column1', 'column2')
-            ->distinct()
-            ->get();
-
-Similarly, you can use the distinct() method when selecting multiple columns. It ensures that each combination of the selected columns has distinct values.
-
-
-
-4.Write the code to retrieve the first record from the "posts" table where the "id" is 2 using Laravel's query builder. Store the result in the $posts variable. 
-Print the "description" column of the $posts variable.
-
-Answer:
+POST model:
 <?php
-$posts = DB::table('posts')
-            ->where('id', 2)
-            ->first();
+namespace App\Models;
 
-echo $posts->description;
+use Illuminate\Database\Eloquent\Model;
 
+class Post extends Model
+{
+    // ...
 
-5.Write the code to retrieve the "description" column from the "posts" table where the "id" is 2 using Laravel's query builder. Store the result in the 
-$posts variable. Print the $posts variable.
-Answer:
-$posts = DB::table('posts')
-            ->where('id', 2)
-            ->pluck('description');
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
+}
 
-print_r($posts);
 
+Category Model:
+namespace App\Models;
 
+use Illuminate\Database\Eloquent\Model;
 
+class Category extends Model
+{
+    // ...
 
-6.Explain the difference between the first() and find() methods in Laravel's query builder. How are they used to retrieve single records?
-Answer:
-first() Method:
+    public function posts()
+    {
+        return $this->hasMany(Post::class);
+    }
+}
 
-(a) Usage: The first() method is used to retrieve the first record that matches the query conditions.
+05:Write a query using Eloquent ORM to retrieve all posts along with their associated categories. Make sure to eager load the categories to optimize the query
+Ans:
+use App\Models\Post;
 
-(b) Commonly Used with Other Query Constraints: It is often used in combination with other query constraints such as where(), orderBy(), etc., to specify the 
-conditions for selecting the first record.
+$posts = Post::with('category')->get();
 
-(c) Returns Full Record: It returns the entire record as an object or an associative array, including all columns of the selected row.
+foreach ($posts as $post) {
+    // Access post information
+    echo "Post Title: " . $post->title . "\n";
+    echo "Post Category: " . $post->category->name . "\n";
+    // ... other post attributes
 
-(d) Example Usage:
-$user = DB::table('users')->where('name', 'John')->first();
+    echo "\n";
+}
 
 
-find() Method:
+06:Implement a method in the "Post" model to get the total number of posts belonging to a specific category. The method should accept the category ID as a parameter and return the count.
 
-(a) Usage: The find() method is used to retrieve a record based on its primary key value.
+Ans:
 
-(b) Specific to Primary Key Lookup: It is specifically designed for retrieving records based on the primary key value, which is passed as an argument 
-to the method.
+namespace App\Models;
 
-(c) Returns Single Column Value: It returns only a single column value (usually the primary key column value) instead of the entire record.
+use Illuminate\Database\Eloquent\Model;
 
-(d) Example Usage:
-$user = DB::table('users')->find(1);
+class Post extends Model
+{
+    // ...
 
+    public static function getCountByCategory($categoryId)
+    {
+        return self::where('category_id', $categoryId)->count();
+    }
+}
 
 
+07: Create a new route in the web.php file to handle the following URL pattern: "/posts/{id}/delete". Implement the corresponding controller method to delete a post by its ID. Soft delete should be used.
+Ans:
 
-7.Write the code to retrieve the "title" column from the "posts" table using Laravel's query builder. Store the result in the $posts variable. 
-Print the $posts variable.
-Answer:
+file: web.php
 
-<?php
-$posts = DB::table('posts')
-            ->pluck('title');
+use App\Http\Controllers\PostController;
 
-print_r($posts);
+// ...
 
+Route::delete('/posts/{id}/delete', [PostController::class, 'destroy']);
 
 
+PostController:
+namespace App\Http\Controllers;
 
-8.Write the code to insert a new record into the "posts" table using Laravel's query builder. Set the "title" and "slug" columns to 'X', and the
- "excerpt" and "description" columns to 'excerpt' and 'description', respectively. Set the "is_published" column to true and the "min_to_read" column to 2.
- Print the result of the insert operation.
+use App\Models\Post;
+use Illuminate\Http\Request;
 
-Answer:
+class PostController extends Controller
+{
+    public function destroy($id)
+    {
+        $post = Post::findOrFail($id);
+        $post->delete();
 
-<?php
-$result = DB::table('posts')
-            ->insert([
-                'title' => 'X',
-                'slug' => 'X',
-                'excerpt' => 'excerpt',
-                'description' => 'description',
-                'is_published' => true,
-                'min_to_read' => 2
-            ]);
+        return redirect()->route('posts.index')->with('success', 'Post deleted successfully');
+    }
+}
 
-print_r($result);
 
 
+08:Implement a method in the "Post" model to get all posts that have been soft deleted. The method should return a collection of soft deleted posts.
+Ans:
+namespace App\Models;
 
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
-9.Write the code to update the "excerpt" and "description" columns of the record with the "id" of 2 in the "posts" table using Laravel's query builder.
- Set the new values to 'Laravel 10'. Print the number of affected rows.
+class Post extends Model
+{
+    use SoftDeletes;
 
-Answer:
+    // ...
 
-<?php
-$affectedRows = DB::table('posts')
-                ->where('id', 2)
-                ->update([
-                    'excerpt' => 'Laravel 10',
-                    'description' => 'Laravel 10'
-                ]);
+    public static function getSoftDeletedPosts()
+    {
+        return self::onlyTrashed()->get();
+    }
+}
 
-echo "Number of affected rows: " . $affectedRows;
 
 
+09:Write a Blade template to display all posts and their associated categories. Use a loop to iterate over the posts and display their details.
+Ans:
+@foreach ($posts as $post)
+    <h2>{{ $post->title }}</h2>
+    <p>Category: {{ $post->category->name }}</p>
+    <p>Excerpt: {{ $post->excerpt }}</p>
+    <p>Description: {{ $post->description }}</p>
+    <!-- ... other post details -->
+@endforeach
 
-10.Write the code to delete the record with the "id" of 3 from the "posts" table using Laravel's query builder. Print the number of affected rows.
-Answer:
 
-<?php
-$affectedRows = DB::table('posts')
-                ->where('id', 3)
-                ->delete();
 
-echo "Number of affected rows: " . $affectedRows;
+10:Create a new route in the web.php file to handle the following URL pattern: "/categories/{id}/posts". Implement the corresponding controller method to retrieve all posts belonging to a specific category. The category ID should be passed as a parameter to the method.
+Ans:
 
+file:web.php
 
-11.Explain the purpose and usage of the aggregate methods count(), sum(), avg(), max(), and min() in Laravel's query builder. Provide an example of each.
-Answer:
+use App\Http\Controllers\CategoryController;
 
-The aggregate methods count(), sum(), avg(), max(), and min() in Laravel's query builder are used to perform calculations on specific columns of a table. Here's
- an explanation of their purpose and usage along with an example for each:
+// ...
 
-count(): This method is used to count the number of rows that match a specific condition. It can be used to count all rows or count rows based on certain 
-criteria.
+Route::get('/categories/{id}/posts', [CategoryController::class, 'getPostsByCategory']);
 
-Example:$totalUsers = DB::table('users')->count();
 
-sum(): This method is used to calculate the sum of values in a specific column. It is commonly used with numeric columns such as prices or quantities.
 
-Example: $totalPrice = DB::table('orders')->sum('price');
 
-avg(): This method is used to calculate the average value of a specific column. It is useful for finding the average of numerical data such as ratings or scores.
+CategoryController:
 
-Example:$averageRating = DB::table('reviews')->avg('rating');
+namespace App\Http\Controllers;
 
-max(): This method is used to retrieve the maximum value from a specific column. It can be used to find the highest value in a set of data.
+use App\Models\Category;
+use Illuminate\Http\Request;
 
-Example:$highestScore = DB::table('students')->max('score');
+class CategoryController extends Controller
+{
+    public function getPostsByCategory($id)
+    {
+        $category = Category::findOrFail($id);
+        $posts = $category->posts()->get();
 
-min(): This method is used to retrieve the minimum value from a specific column. It helps find the lowest value in a set of data.
+        return view('posts.index', compact('posts'));
+    }
+}
 
-Example:$lowestPrice = DB::table('products')->min('price');
 
 
-12.Describe how the whereNot() method is used in Laravel's query builder. Provide an example of its usage.
-Answer:
+11:Implement a method in the "Category" model to get the latest post associated with the category. The method should return the post object.
 
-The whereNot() method in Laravel's query builder is used to add a "not equal" condition to a query. It allows you to retrieve records that do not match a specific value or set of values in a column. The whereNot() method is typically used in conjunction with the where() method to add additional conditions to a query.
+Ans:
 
-Here's an example of how to use the whereNot() method:
-$users = DB::table('users')
-            ->whereNot('status', 'active')
-            ->get();
 
-In the above example, we are retrieving all the users whose status is not equal to 'active'. The whereNot() method takes two arguments: the column name and the 
-value to compare against. It adds a "not equal" condition to the query.
+namespace App\Models;
 
-The resulting query will retrieve all the users from the "users" table whose status is not equal to 'active'.
+use Illuminate\Database\Eloquent\Model;
 
+class Category extends Model
+{
+    // ...
 
-13.Explain the difference between the exists() and doesntExist() methods in Laravel's query builder. How are they used to check the existence of records?
+    public function latestPost()
+    {
+        return $this->hasOne(Post::class)->latest();
+    }
+}
 
-Answer:
-explanation of the difference between the exists() and doesntExist() methods in Laravel's query builder for checking the existence of records:
 
-exists(): It checks if at least one record exists in the table that matches a specified condition. It returns true if there is a matching record, and false if 
-there is no match.
-using exits:
-$result = DB::table('users')
-            ->where('email', 'user@example.com')
-            ->exists();
 
 
-doesntExist(): It checks if no records exist in the table that match a specified condition. It returns true if there are no matching records, and false if there
- is at least one match.
-using doesntExist:
-$result = DB::table('users')
-            ->where('status', 'active')
-            ->doesntExist();
+$category = Category::find($categoryId);
+$latestPost = $category->latestPost;
 
+if ($latestPost) {
+    // Access the latest post details
+    echo "Latest Post Title: " . $latestPost->title . "\n";
+    // ... other post attributes
+} else {
+    echo "No posts found for the category.";
+}
 
 
-14.Write the code to retrieve records from the "posts" table where the "min_to_read" column is between 1 and 5 using Laravel's query builder. 
-Store the result in the $posts variable. Print the $posts variable.
-Answer:
-$posts = DB::table('posts')
-            ->whereBetween('min_to_read', [1, 5])
-            ->get();
 
-print_r($posts);
+12: Write a Blade template to display the latest post for each category. Use a loop to iterate over the categories and display the post details.
 
 
-15.Write the code to increment the "min_to_read" column value of the record with the "id" of 3 in the "posts" table by 1 using Laravel's query builder. 
-Print the number of affected rows.
+Ans:
+@foreach ($categories as $category)
+    <h2>{{ $category->name }}</h2>
 
-Answer:
+    @if ($category->latestPost)
+        <h3>{{ $category->latestPost->title }}</h3>
+        <p>{{ $category->latestPost->excerpt }}</p>
+        <p>{{ $category->latestPost->description }}</p>
+        <!-- ... other post details -->
+    @else
+        <p>No posts found for this category.</p>
+    @endif
 
-$affectedRows = DB::table('posts')
-                  ->where('id', 3)
-                  ->increment('min_to_read');
-
-echo "Number of affected rows: " . $affectedRows;
-
-
+    <hr>
+@endforeach
 
 
